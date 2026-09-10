@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desafío Integrador – Métodos Numéricos en Finanzas (Bolivia)</title>
+
+<!-- ===== CARGA ROBUSTA DE CHART.JS ===== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  if (typeof Chart === 'undefined') {
+    document.write('<script src="https://unpkg.com/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+  }
+</script>
+<script>
+  if (typeof Chart === 'undefined') {
+    document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"><\/script>');
+  }
+</script>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #e2e8f0;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #f59e0b 100%);
+    padding: 60px 20px 40px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '🇧🇴';
+    position: absolute;
+    font-size: 18rem;
+    opacity: 0.08;
+    top: -40px;
+    right: -20px;
+    pointer-events: none;
+  }
+  header h1 {
+    font-size: 2.4rem;
+    color: #ffffff;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  header p {
+    color: #fef3c7;
+    font-size: 1.1rem;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+  }
+  header .tags {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    position: relative;
+  }
+  header .tags span {
+    background: rgba(255,255,255,0.2);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: #fff;
+    backdrop-filter: blur(4px);
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 12px 20px;
+    z-index: 100;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  nav a {
+    color: #94a3b8;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  nav a:hover { background: #1e293b; color: #f59e0b; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+  section { margin-bottom: 40px; scroll-margin-top: 80px; }
+  h2 {
+    font-size: 1.6rem;
+    color: #f59e0b;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2 .num {
+    background: #f59e0b;
+    color: #0f172a;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+  h3 { font-size: 1.15rem; color: #fbbf24; margin: 20px 0 10px; }
+  h4 { font-size: 1rem; color: #fcd34d; margin: 14px 0 8px; }
+  p { margin-bottom: 12px; color: #cbd5e1; }
+  ul, ol { margin-left: 22px; color: #cbd5e1; margin-bottom: 12px; }
+  li { margin-bottom: 6px; }
+  .card {
+    background: #1e293b;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    border: 1px solid #334155;
+  }
+  .card.highlight {
+    border-left: 4px solid #f59e0b;
+    background: linear-gradient(135deg, #1e293b 0%, #2a1f10 100%);
+  }
+  .card.warn-card { border-left: 4px solid #fbbf24; }
+  .card.danger-card { border-left: 4px solid #f87171; }
+  .card.success-card { border-left: 4px solid #4ade80; }
+  .card.info-card { border-left: 4px solid #38bdf8; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th, td { padding: 10px 12px; text-align: center; border: 1px solid #334155; }
+  th { background: #0f172a; color: #f59e0b; font-weight: 600; }
+  tr:nth-child(even) { background: rgba(15,23,42,0.5); }
+  input[type="number"], input[type="text"] {
+    width: 100%;
+    padding: 8px 10px;
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    text-align: center;
+    transition: border 0.2s;
+  }
+  input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+  label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 4px; }
+  button {
+    background: #f59e0b;
+    color: #0f172a;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 5px 5px 5px 0;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+  }
+  button:hover { background: #fbbf24; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+  button:active { transform: translateY(0); }
+  button.secondary { background: #475569; color: #e2e8f0; }
+  button.secondary:hover { background: #64748b; }
+  button.warn { background: #fbbf24; }
+  button.warn:hover { background: #fcd34d; }
+  button.danger { background: #dc2626; color: #fff; }
+  button.danger:hover { background: #ef4444; }
+  .result {
+    background: #0f172a;
+    border-left: 4px solid #f59e0b;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-top: 14px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.88rem;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    color: #fde68a;
+    line-height: 1.6;
+  }
+  .result.error { border-left-color: #f87171; color: #fca5a5; }
+  .result.success { border-left-color: #4ade80; color: #bbf7d0; }
+  .chart-container {
+    position: relative;
+    background: #0f172a;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
+    border: 1px solid #334155;
+    height: 340px;
+  }
+  .chart-container canvas { max-height: 300px; }
+  .chart-title { font-size: 0.95rem; color: #fbbf24; margin-bottom: 10px; font-weight: 600; }
+  .interpretation {
+    background: rgba(245,158,11,0.08);
+    border-left: 4px solid #f59e0b;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-top: 12px;
+    font-size: 0.92rem;
+    color: #fde68a;
+  }
+  .interpretation strong { color: #f59e0b; }
+  .interpretation.warn { background: rgba(251,191,36,0.08); border-left-color: #fbbf24; color: #fef3c7; }
+  .interpretation.warn strong { color: #fbbf24; }
+  .interpretation.danger { background: rgba(248,113,113,0.08); border-left-color: #f87171; color: #fecaca; }
+  .interpretation.danger strong { color: #f87171; }
+  .interpretation.info { background: rgba(56,189,248,0.08); border-left-color: #38bdf8; color: #bae6fd; }
+  .interpretation.info strong { color: #38bdf8; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+  .matrix-input { display: grid; gap: 8px; margin: 10px 0; }
+  .matrix-row { display: flex; gap: 8px; justify-content: center; }
+  .matrix-row input { width: 80px; }
+  .formula {
+    background: #0f172a;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-family: 'Consolas', monospace;
+    color: #fbbf24;
+    border-left: 3px solid #f59e0b;
+    overflow-x: auto;
+  }
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .timeline-item {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    border-top: 3px solid #f59e0b;
+  }
+  .timeline-item .icono { font-size: 1.8rem; margin-bottom: 6px; }
+  .timeline-item .label { font-size: 0.85rem; color: #94a3b8; }
+  .conclusion-box {
+    background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #f59e0b 100%);
+    border-radius: 14px;
+    padding: 28px;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(220,38,38,0.3);
+  }
+  .conclusion-box h2 { color: #fff; border-bottom-color: rgba(255,255,255,0.3); }
+  .conclusion-box h2 .num { background: #fff; color: #dc2626; }
+  .conclusion-box p { color: #fef3c7; }
+  .bolivia-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(220,38,38,0.15);
+    border: 1px solid #dc2626;
+    color: #fca5a5;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+  }
+  .defensa-box {
+    background: rgba(74,222,128,0.08);
+    border-left: 4px solid #4ade80;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin: 12px 0;
+    font-size: 0.92rem;
+    color: #bbf7d0;
+  }
+  .defensa-box strong { color: #4ade80; }
+  .panel-analisis {
+    background: #0f172a;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 12px 0;
+    border: 1px solid #334155;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    color: #a5f3fc;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    overflow-x: auto;
+  }
+  footer {
+    text-align: center;
+    padding: 30px 20px;
+    color: #64748b;
+    font-size: 0.85rem;
+    border-top: 1px solid #1e293b;
+    margin-top: 40px;
+  }
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.6rem; }
+    h2 { font-size: 1.25rem; }
+    .matrix-row input { width: 60px; }
+    nav a { font-size: 0.8rem; padding: 4px 10px; }
+    .chart-container { height: 280px; }
+  }
+  html { scroll-behavior: smooth; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .card { animation: fadeIn 0.4s ease-out; }
+  .chart-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    height: 100%;
+    color: #f87171;
+    text-align: center;
+    padding: 20px;
+  }
+  .chart-error .icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .chart-error .title { font-weight: bold; margin-bottom: 8px; }
+  .chart-error .hint { font-size: 0.85rem; color: #94a3b8; }
+  .chart-error code { background: #0f172a; padding: 2px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🇧🇴 Desafío Integrador</h1>
+  <p><strong>Métodos Numéricos Aplicados al Área Financiera en Bolivia</strong><br>
+  Teoría de errores · Aproximación por Taylor · Sistemas de ecuaciones lineales</p>
+  <div class="tags">
+    <span>Teoría de Errores</span>
+    <span>Aproximación por Taylor</span>
+    <span>Factorización LU</span>
+    <span>Jacobi</span>
+    <span>Gauss-Seidel</span>
+    <span>Diagonal Dominante</span>
+    <span>Tolerancia 10⁻⁶</span>
+    <span>Bolivianos (Bs)</span>
+  </div>
+</header>
+
+<nav>
+  <a href="#intro">Introducción</a>
+  <a href="#contexto">Contexto</a>
+  <a href="#parte1">Parte I: Errores</a>
+  <a href="#parte2">Parte II: Taylor</a>
+  <a href="#parte3">Parte III: Sistemas</a>
+  <a href="#indicaciones">Indicaciones</a>
+  <a href="#integracion">Integración</a>
+  <a href="#defensa">Defensa del Temario</a>
+  <a href="#conclusion">Conclusión</a>
+</nav>
+
+<div class="container">
+
+<!-- ================= INTRODUCCIÓN ================= -->
+<section id="intro">
+  <h2><span class="num">i</span> Introducción</h2>
+  <div class="card highlight">
+    <div class="bolivia-badge">🇧🇴 Contexto: Sistema Financiero Boliviano</div>
+    <p>En Bolivia, las decisiones financieras se toman sobre datos que <strong>nunca son exactos</strong>: tasas del Banco Central de Bolivia (BCB), cotizaciones de la Bolsa Boliviana de Valores (BBV), reportes de la ASFI (Autoridad de Supervisión del Sistema Financiero), tipo de cambio Bs/USD y estimaciones de entidades bancarias. Un error pequeño en una tasa, un precio o una volatilidad puede <strong>propagarse</strong> y alterar decisiones de inversión en bolivianos.</p>
+    <p>Este desafío integra tres pilares del análisis numérico aplicados a finanzas bolivianas:</p>
+    <ul>
+      <li><strong>Teoría de errores:</strong> cuantificar la desviación entre datos de referencia (BCB, ASFI) y datos registrados internamente.</li>
+      <li><strong>Aproximación por Taylor:</strong> estimar valores futuros de capital en bolivianos con polinomios de distinto orden.</li>
+      <li><strong>Sistemas de ecuaciones lineales:</strong> distribuir recursos entre áreas de una empresa boliviana resolviendo sistemas con LU, Jacobi y Gauss-Seidel.</li>
+    </ul>
+    <p>El objetivo es que el estudiante <strong>reconozca la sensibilidad de los resultados financieros</strong> ante perturbaciones en los datos y distinga entre una aproximación precisa y un sistema mal condicionado, en el contexto económico boliviano.</p>
+  </div>
+</section>
+
+<!-- ================= CONTEXTO ================= -->
+<section id="contexto">
+  <h2><span class="num">ii</span> Contexto del Desafío</h2>
+  <div class="card">
+    <div class="bolivia-badge">🇧🇴 Pequeña empresa boliviana</div>
+    <p>Una <strong>pequeña empresa boliviana</strong> (por ejemplo, una empresa de servicios en Santa Cruz o una manufacturera en El Alto) necesita analizar información financiera para tomar decisiones sobre sus ingresos, costos y distribución de recursos. Los datos provienen de registros y estimaciones que pueden contener <strong>errores de medición, redondeo o aproximación</strong>.</p>
+    <p>La empresa distribuye recursos entre tres áreas:</p>
+    <div class="grid-3" style="margin: 16px 0;">
+      <div class="timeline-item">
+        <div class="icono">🏭</div>
+        <div class="label">Operaciones<br><small>x₁ (miles de Bs)</small></div>
+      </div>
+      <div class="timeline-item">
+        <div class="icono">🛒</div>
+        <div class="label">Comercialización<br><small>x₂ (miles de Bs)</small></div>
+      </div>
+      <div class="timeline-item">
+        <div class="icono">💻</div>
+        <div class="label">Tecnología<br><small>x₃ (miles de Bs)</small></div>
+      </div>
+    </div>
+    <p>El propósito es observar cómo esos errores pueden afectar los resultados numéricos y, en consecuencia, las decisiones financieras.</p>
+  </div>
+
+  <div class="card info-card">
+    <h3>🎯 Objetivo</h3>
+    <p>Aplicar, de manera sencilla e integrada, teoría de errores, aproximación por Taylor y métodos numéricos para resolver sistemas de ecuaciones lineales en un problema financiero boliviano.</p>
+  </div>
+</section>
+
+<!-- ================= PARTE I ================= -->
+<section id="parte1">
+  <h2><span class="num">1</span> Parte I – Teoría de Errores</h2>
+  <div class="card">
+    <div class="bolivia-badge">🇧🇴 Datos: BCB · ASFI · Registros internos</div>
+    <p>La empresa compara <strong>valores financieros de referencia</strong> (publicados por el BCB o la ASFI) con <strong>valores registrados internamente</strong>. Los errores pueden deberse a latencia en la actualización, redondeo o fallos de sincronización con las fuentes oficiales bolivianas.</p>
+
+    <h3>📐 Fórmulas</h3>
+    <div class="formula">E<sub>a</sub> = |x<sub>real</sub> − x<sub>aproximado</sub>|</div>
+    <div class="formula">E<sub>r</sub> = E<sub>a</sub> / |x<sub>real</sub>|</div>
+    <div class="formula">E% = E<sub>r</sub> × 100</div>
+
+    <h3>📝 Datos financieros de la empresa boliviana</h3>
+    <table id="errTable">
+      <thead>
+        <tr><th>Dato financiero</th><th>Valor de referencia (Bs)</th><th>Valor registrado (Bs)</th><th>E absoluto</th><th>E relativo</th><th>E %</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Ingreso diario</td><td><input type="number" step="any" value="12500"></td><td><input type="number" step="any" value="12420"></td><td class="ea">—</td><td class="er">—</td><td class="ep">—</td></tr>
+        <tr><td>Costo operativo</td><td><input type="number" step="any" value="7800"></td><td><input type="number" step="any" value="7860"></td><td class="ea">—</td><td class="er">—</td><td class="ep">—</td></tr>
+        <tr><td>Utilidad estimada</td><td><input type="number" step="any" value="4700"></td><td><input type="number" step="any" value="4560"></td><td class="ea">—</td><td class="er">—</td><td class="ep">—</td></tr>
+      </tbody>
+    </table>
+    <button onclick="calcularErrores()">🔍 Calcular errores</button>
+    <button class="secondary" onclick="resetErrores()">↺ Restablecer valores</button>
+    <div class="result" id="errResult">Esperando cálculo...</div>
+
+    <h3>📊 Gráfica comparativa de errores porcentuales</h3>
+    <div class="chart-container">
+      <div class="chart-title">📊 Error porcentual por dato financiero (Bolivia)</div>
+      <canvas id="chartErrores"></canvas>
+    </div>
+    <div class="interpretation" id="interpErrores">
+      <strong>Interpretación:</strong> Presione "Calcular errores" para visualizar qué dato tiene mayor impacto relativo.
+    </div>
+
+    <h3>📝 Preguntas</h3>
+    <ol>
+      <li>Calcule los tres tipos de error para cada dato.</li>
+      <li>Indique cuál de los tres datos presenta el mayor error porcentual.</li>
+      <li>Explique en 2 o 3 líneas cómo un error en ingresos o costos puede afectar una decisión financiera en Bolivia.</li>
+    </ol>
+
+    <div class="defensa-box">
+      <strong>💡 Defensa del temario:</strong> La teoría de errores es fundamental en finanzas porque <strong>ningún dato de mercado es exacto</strong>. En Bolivia, donde el tipo de cambio está fijo (Bs/USD ≈ 6.96) pero los precios de commodities fluctúan, un error en el ingreso diario o en el costo operativo puede amplificarse al calcular la utilidad neta. Este ejercicio cuantifica esa propagación mediante E<sub>a</sub>, E<sub>r</sub> y E%.
+    </div>
+  </div>
+</section>
+
+<!-- ================= PARTE II ================= -->
+<section id="parte2">
+  <h2><span class="num">2</span> Parte II – Aproximación mediante Taylor</h2>
+  <div class="card">
+    <div class="bolivia-badge">🇧🇴 Crecimiento de capital en bolivianos</div>
+    <p>Se desea aproximar el crecimiento de un capital usando un modelo simplificado de <strong>interés continuo</strong>:</p>
+    <div class="formula">C(t) = 10 000 · e<sup>0.05t</sup></div>
+    <p>Use como punto de expansión <strong>t₀ = 1 año</strong> y estime el capital para <strong>t = 1.5 años</strong>.</p>
+
+    <h3>📐 Derivadas necesarias</h3>
+    <div class="formula">C'(t) = 500 · e<sup>0.05t</sup></div>
+    <div class="formula">C''(t) = 25 · e<sup>0.05t</sup></div>
+    <div class="formula">C'''(t) = 1.25 · e<sup>0.05t</sup></div>
+
+    <h3>📐 Polinomios de Taylor</h3>
+    <div class="formula">Orden 1: C₁(t) = C(t₀) + C'(t₀)(t − t₀)</div>
+    <div class="formula">Orden 2: C₂(t) = C₁(t) + [C''(t₀)/2!](t − t₀)²</div>
+    <div class="formula">Orden 3: C₃(t) = C₂(t) + [C'''(t₀)/3!](t − t₀)³</div>
+
+    <h3>📝 Parámetros (editables)</h3>
+    <div class="grid-3">
+      <div>
+        <label>Capital inicial P (Bs)</label>
+        <input type="number" step="any" id="P" value="10000">
+      </div>
+      <div>
+        <label>Tasa r (decimal, 0.05 = 5%)</label>
+        <input type="number" step="any" id="r" value="0.05">
+      </div>
+      <div>
+        <label>Punto de expansión t₀ (años)</label>
+        <input type="number" step="any" id="t0" value="1">
+      </div>
+      <div>
+        <label>Valor a estimar t (años)</label>
+        <input type="number" step="any" id="t" value="1.5">
+      </div>
+    </div>
+    <button onclick="calcularTaylor()">📈 Calcular Taylor</button>
+    <button class="secondary" onclick="resetTaylor()">↺ Restablecer valores</button>
+    <div class="result" id="taylorResult">Esperando cálculo...</div>
+
+    <h3>📈 Gráfica: Curva exacta vs Taylor (órdenes 1, 2, 3)</h3>
+    <div class="chart-container">
+      <div class="chart-title">📈 Curva exacta C(t) vs Aproximaciones de Taylor – en Bs</div>
+      <canvas id="chartTaylor"></canvas>
+    </div>
+    <div class="interpretation" id="interpTaylor">
+      <strong>Interpretación:</strong> Presione "Calcular Taylor" para ver cómo cada orden se acerca a la curva exacta.
+    </div>
+
+    <h3>📝 Preguntas</h3>
+    <ol start="4">
+      <li>Calcule el valor exacto C(1.5).</li>
+      <li>Calcule Taylor de orden 1, 2 y 3.</li>
+      <li>Compare cada aproximación con el valor exacto usando error absoluto.</li>
+      <li>Indique qué orden de Taylor produjo la mejor aproximación.</li>
+    </ol>
+
+    <div class="defensa-box">
+      <strong>💡 Defensa del temario:</strong> La aproximación de Taylor permite <strong>estimar valores futuros</strong> de un capital sin calcular la exponencial completa. En finanzas bolivianas, esto es útil para proyectar rendimientos de depósitos a plazo fijo o bonos del BCB. A mayor orden, menor error, pero mayor costo computacional. El estudiante debe reconocer el <strong>trade-off entre precisión y simplicidad</strong>.
+    </div>
+  </div>
+</section>
+
+<!-- ================= PARTE III ================= -->
+<section id="parte3">
+  <h2><span class="num">3</span> Parte III – Sistemas de Ecuaciones Lineales</h2>
+  <div class="card">
+    <div class="bolivia-badge">🇧🇴 Distribución de recursos entre áreas</div>
+    <p>La empresa distribuye recursos entre tres áreas. Las incógnitas representan montos expresados en <strong>miles de bolivianos</strong>:</p>
+    <ul>
+      <li><strong>x₁</strong> = recursos para operaciones.</li>
+      <li><strong>x₂</strong> = recursos para comercialización.</li>
+      <li><strong>x₃</strong> = recursos para tecnología.</li>
+    </ul>
+
+    <h3>📝 Ingrese la matriz A (3×3) y el vector b (3×1)</h3>
+    <div class="grid-3">
+      <div>
+        <h4>Matriz A</h4>
+        <div class="matrix-input" id="matA">
+          <div class="matrix-row"><input type="number" step="any" value="10"><input type="number" step="any" value="2"><input type="number" step="any" value="1"></div>
+          <div class="matrix-row"><input type="number" step="any" value="1"><input type="number" step="any" value="9"><input type="number" step="any" value="2"></div>
+          <div class="matrix-row"><input type="number" step="any" value="2"><input type="number" step="any" value="1"><input type="number" step="any" value="8"></div>
+        </div>
+      </div>
+      <div>
+        <h4>Vector b</h4>
+        <div class="matrix-input">
+          <div class="matrix-row"><input type="number" step="any" id="b1" value="29"></div>
+          <div class="matrix-row"><input type="number" step="any" id="b2" value="24.5"></div>
+          <div class="matrix-row"><input type="number" step="any" id="b3" value="28"></div>
+        </div>
+      </div>
+      <div>
+        <h4>Parámetros iterativos</h4>
+        <label>Tolerancia</label>
+        <input type="number" step="any" id="tol" value="0.000001">
+        <label>Máx. iteraciones</label>
+        <input type="number" id="maxIter" value="50">
+      </div>
+    </div>
+
+    <h3>🔍 Análisis de Diagonal Dominante</h3>
+    <p style="font-size: 0.9rem; color: #94a3b8;">El criterio de diagonal dominante permite <strong>predecir</strong> si Jacobi y Gauss-Seidel convergerán antes de ejecutarlos.</p>
+    <div class="panel-analisis" id="panelAnalisis">Presione "Analizar diagonal dominante" para ver el análisis de la matriz actual.</div>
+    <button class="secondary" onclick="analizarMatrizActual()">🔍 Analizar diagonal dominante</button>
+
+    <h3>🎯 Casos predefinidos (Bolivia)</h3>
+    <div>
+      <button onclick="cargarCaso('ideal')">✅ Caso ideal</button>
+      <button class="warn" onclick="cargarCaso('estres')">⚠ Caso bajo estrés</button>
+      <button class="danger" onclick="cargarCaso('mal')">🔴 Caso mal condicionado</button>
+    </div>
+
+    <h3>🚀 Resolver</h3>
+    <div>
+      <button onclick="resolverLU()">🔹 Factorización LU</button>
+      <button onclick="resolverJacobi()">🔸 Jacobi</button>
+      <button onclick="resolverGaussSeidel()">🔹 Gauss-Seidel</button>
+      <button class="secondary" onclick="resolverTodos()">📊 Resolver todos</button>
+    </div>
+
+    <div class="result" id="sysResult">Esperando cálculo...</div>
+
+    <h3>📉 Convergencia de Jacobi vs Gauss-Seidel</h3>
+    <div class="chart-container">
+      <div class="chart-title">📉 Error por iteración (escala logarítmica)</div>
+      <canvas id="chartConvergencia"></canvas>
+    </div>
+    <div class="interpretation" id="interpConvergencia">
+      <strong>Interpretación:</strong> Presione "Jacobi" o "Gauss-Seidel" para ver la velocidad de convergencia.
+    </div>
+
+    <h3>📊 Comparación de soluciones</h3>
+    <div class="chart-container">
+      <div class="chart-title">📊 LU vs Jacobi vs Gauss-Seidel (miles de Bs)</div>
+      <canvas id="chartSoluciones"></canvas>
+    </div>
+    <div class="interpretation" id="interpSoluciones">
+      <strong>Interpretación:</strong> Presione "Resolver todos" para comparar las soluciones.
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card warn-card">
+      <h3>⚠ 6.2. Caso bajo estrés</h3>
+      <p>Suponga que, por una <strong>variación inesperada en costos</strong> (por ejemplo, aumento del precio de insumos importados o del combustible), el vector de resultados cambia ligeramente. Mantenga la misma matriz del caso ideal y utilice:</p>
+      <div class="formula">10x₁ + 2x₂ + x₃ = 29.5</div>
+      <div class="formula">x₁ + 9x₂ + 2x₃ = 24.5</div>
+      <div class="formula">2x₁ + x₂ + 8x₃ = 28.4</div>
+      <p>Resuelva con Jacobi o Gauss-Seidel y compare brevemente el resultado con el caso ideal.</p>
+    </div>
+    <div class="card danger-card">
+      <h3>🔴 6.3. Caso mal condicionado</h3>
+      <p>Tres estimaciones financieras son <strong>muy parecidas entre sí</strong>. Esto puede generar una solución muy sensible a pequeñas variaciones.</p>
+      <div class="formula">x₁ + x₂ + x₃ = 6</div>
+      <div class="formula">1.001x₁ + x₂ + x₃ = 6.001</div>
+      <div class="formula">x₁ + 1.001x₂ + x₃ = 6.002</div>
+      <p>Resuelva mediante LU. Luego cambie el último término de 6.002 a <strong>6.003</strong> y vuelva a resolver. Compare ambas soluciones.</p>
+    </div>
+  </div>
+
+  <div class="defensa-box">
+    <strong>💡 Defensa del temario:</strong> Los sistemas de ecuaciones lineales modelan la <strong>distribución óptima de recursos</strong> entre áreas de una empresa. LU da la solución exacta (método directo), mientras que Jacobi y Gauss-Seidel son iterativos y útiles cuando la matriz es grande y dispersa. El <strong>criterio de diagonal dominante</strong> permite predecir la convergencia: si la matriz es estrictamente dominante, los métodos iterativos convergen garantizado. El caso mal condicionado demuestra que en finanzas, cuando tres activos están altamente correlacionados, <strong>pequeños cambios en los datos producen grandes cambios en la solución</strong>.
+  </div>
+</section>
+
+<!-- ================= INDICACIONES ================= -->
+<section id="indicaciones">
+  <h2><span class="num">4</span> Indicaciones para los Métodos Iterativos</h2>
+  <div class="card info-card">
+    <ul>
+      <li><strong>Vector inicial sugerido:</strong> x⁽⁰⁾ = (0, 0, 0).</li>
+      <li><strong>Tolerancia:</strong> TOL = 10⁻⁶.</li>
+      <li><strong>Máximo sugerido:</strong> 50 iteraciones.</li>
+      <li><strong>Reporte:</strong> la solución, el número de iteraciones y si el método converge.</li>
+    </ul>
+    <p>No es necesario desarrollar gráficas ni calcular formalmente el número de condición durante la actividad. La atención debe centrarse en los cálculos y en una interpretación breve.</p>
+    <div class="defensa-box">
+      <strong>💡 Defensa del temario:</strong> La tolerancia 10⁻⁶ garantiza que la solución numérica sea suficientemente precisa para decisiones financieras. En Bolivia, donde los montos pueden llegar a millones de bolivianos, un error de 10⁻⁶ en miles de Bs es despreciable. El máximo de 50 iteraciones evita bucles infinitos en sistemas que no convergen.
+    </div>
+  </div>
+</section>
+
+<!-- ================= INTEGRACIÓN ================= -->
+<section id="integracion">
+  <h2><span class="num">5</span> Integración Final</h2>
+  <div class="card">
+    <p>Responda brevemente:</p>
+    <p><strong>¿Puede un error pequeño en un dato financiero producir un cambio importante en el resultado final?</strong></p>
+    <p>Relacione su respuesta con:</p>
+    <ul>
+      <li>Los errores calculados en la Parte I.</li>
+      <li>La aproximación de Taylor en la Parte II.</li>
+      <li>El sistema mal condicionado en la Parte III.</li>
+    </ul>
+
+    <h3>📋 Entrega esperada</h3>
+    <ul>
+      <li>Cálculos de error absoluto, relativo y porcentual.</li>
+      <li>Taylor de orden 1, 2 y 3 para el dato solicitado.</li>
+      <li>Solución del caso ideal con LU, Jacobi y Gauss-Seidel.</li>
+      <li>Comparación breve del caso bajo estrés.</li>
+      <li>Comparación antes y después de la perturbación del caso mal condicionado.</li>
+      <li>Una conclusión final de máximo 5 líneas.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= DEFENSA DEL TEMARIO ================= -->
+<section id="defensa">
+  <h2><span class="num">6</span> Defensa del Temario</h2>
+  <div class="card success-card">
+    <h3>🎓 ¿Por qué estos temas son relevantes en finanzas bolivianas?</h3>
+    <div class="grid-2">
+      <div>
+        <h4>1. Teoría de errores</h4>
+        <p>En Bolivia, los datos financieros provienen de múltiples fuentes (BCB, ASFI, BBV, bancos) con distintos niveles de precisión. Un error en el tipo de cambio o en la tasa de interés puede distorsionar la valoración de activos. La teoría de errores permite <strong>cuantificar y acotar</strong> esa incertidumbre.</p>
+        <h4>2. Aproximación por Taylor</h4>
+        <p>Permite <strong>estimar valores futuros</strong> de capital sin necesidad de calcular exponenciales complejas. Es la base de muchos modelos financieros (Black-Scholes, valoración de bonos). En Bolivia, es útil para proyectar rendimientos de depósitos a plazo fijo o bonos del BCB.</p>
+      </div>
+      <div>
+        <h4>3. Sistemas de ecuaciones lineales</h4>
+        <p>Modelan la <strong>distribución óptima de recursos</strong> entre áreas o sectores. LU es directo y exacto; Jacobi y Gauss-Seidel son iterativos y útiles para matrices grandes. En Bolivia, se aplican a la asignación de presupuesto en empresas, municipios o el propio Estado.</p>
+        <h4>4. Diagonal dominante y condicionamiento</h4>
+        <p>El criterio de diagonal dominante permite <strong>predecir la convergencia</strong> de métodos iterativos. Un sistema mal condicionado (como el caso 6.3) demuestra que cuando los datos son muy similares (alta correlación), <strong>pequeños cambios producen grandes efectos</strong>. Esto es crítico en finanzas bolivianas, donde sectores como minería, agro e hidrocarburos pueden estar altamente correlacionados.</p>
+      </div>
+    </div>
+    <div class="defensa-box" style="margin-top: 16px;">
+      <strong>💡 Conclusión de la defensa:</strong> Los tres temas están <strong>integrados</strong>: la teoría de errores cuantifica la incertidumbre en los datos, Taylor permite aproximar valores futuros con precisión controlada, y los sistemas de ecuaciones lineales resuelven la distribución de recursos. El criterio de diagonal dominante cierra el círculo permitiendo <strong>predecir</strong> la convergencia antes de iterar, y el caso mal condicionado muestra que la <strong>sensibilidad numérica</strong> puede invalidar decisiones financieras si no se detecta a tiempo.
+    </div>
+  </div>
+</section>
+
+<!-- ================= CONCLUSIÓN ================= -->
+<section id="conclusion">
+  <h2><span class="num">7</span> Conclusión</h2>
+  <div class="conclusion-box">
+    <h2 style="border-bottom: none;"><span class="num">✓</span> Reflexión Final – Bolivia</h2>
+    <p>En el <strong>contexto financiero boliviano</strong>, un error pequeño en un dato (tasa BCB, tipo de cambio Bs/USD, cotización de un bono en la BBV) <strong>puede propagarse significativamente</strong>. La teoría de errores cuantifica esta desviación, la aproximación de Taylor muestra cómo mejorar estimaciones del capital en bolivianos, y los sistemas mal condicionados evidencian que la <strong>sensibilidad a perturbaciones</strong> puede invalidar decisiones de inversión en áreas como operaciones, comercialización y tecnología.</p>
+    <p style="margin-top: 12px;"><strong>Lección clave para Bolivia:</strong> antes de confiar en un resultado numérico, es crucial evaluar la estabilidad del sistema y la precisión de los datos de entrada. En una economía con alta dependencia de commodities y tipo de cambio fijo, un pequeño error puede costar millones de bolivianos.</p>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <p>🇧🇴 Desafío Integrador – Métodos Numéricos Aplicados a Finanzas en Bolivia</p>
+  <p style="margin-top: 8px;">Contexto: Pequeña empresa boliviana · BCB · ASFI · BBV · Bolivianos (Bs)</p>
+  <p style="margin-top: 8px;">HTML + CSS + JavaScript + Chart.js</p>
+  <p style="margin-top: 8px;">Tolerancia iterativa: 10<sup>-6</sup> · Máx. 50 iteraciones · Criterio de diagonal dominante</p>
+</footer>
+
+<script>
+/* =================================================================
+   UTILIDADES GENERALES
+   ================================================================= */
+function fmt(x, d) {
+  if (d === undefined) d = 6;
+  if (!isFinite(x)) return "∞";
+  if (Math.abs(x) < 1e-12) return "0";
+  return Number(x).toFixed(d);
+}
+
+var chartErrores = null;
+var chartTaylor = null;
+var chartConvergencia = null;
+var chartSoluciones = null;
+
+/* =================================================================
+   INICIALIZACIÓN AL CARGAR LA PÁGINA
+   ================================================================= */
+window.addEventListener('load', function () {
+  if (typeof Chart === 'undefined') {
+    document.querySelectorAll('.chart-container').forEach(function (container) {
+      var titulo = container.querySelector('.chart-title');
+      var tituloHTML = titulo ? titulo.outerHTML : '';
+      container.innerHTML = tituloHTML +
+        '<div class="chart-error">' +
+          '<div class="icon">⚠️</div>' +
+          '<div class="title">No se pudo cargar Chart.js</div>' +
+          '<div class="hint">Verifica tu conexión a internet o descarga <code>chart.umd.min.js</code> y colócalo junto a este archivo HTML.</div>' +
+        '</div>';
+    });
+    return;
+  }
+
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.borderColor = '#334155';
+  Chart.defaults.font.family = "'Segoe UI', Roboto, sans-serif";
+
+  calcularErrores();
+  calcularTaylor();
+
+  setTimeout(function () {
+    var c1 = document.getElementById('chartConvergencia');
+    if (c1) {
+      var ctx1 = c1.getContext('2d');
+      ctx1.clearRect(0, 0, c1.width, c1.height);
+      ctx1.fillStyle = '#64748b';
+      ctx1.font = '16px Segoe UI';
+      ctx1.textAlign = 'center';
+      ctx1.textBaseline = 'middle';
+      ctx1.fillText('Presione "Jacobi" o "Gauss-Seidel" para ver la convergencia', c1.width / 2, c1.height / 2);
+    }
+    var c2 = document.getElementById('chartSoluciones');
+    if (c2) {
+      var ctx2 = c2.getContext('2d');
+      ctx2.clearRect(0, 0, c2.width, c2.height);
+      ctx2.fillStyle = '#64748b';
+      ctx2.font = '16px Segoe UI';
+      ctx2.textAlign = 'center';
+      ctx2.textBaseline = 'middle';
+      ctx2.fillText('Presione "Resolver todos" para comparar las soluciones', c2.width / 2, c2.height / 2);
+    }
+  }, 300);
+
+  // Análisis inicial de la matriz por defecto
+  analizarMatrizActual();
+});
+
+/* =================================================================
+   PARTE I – TEORÍA DE ERRORES
+   ================================================================= */
+function calcularErrores() {
+  var rows = document.querySelectorAll('#errTable tbody tr');
+  var maxErr = -1, maxDato = '';
+  var out = '📊 RESULTADOS DE ERRORES – EMPRESA BOLIVIANA\n';
+  out += '────────────────────────────────────────────────────────────\n';
+  var labels = [];
+  var valoresE = [];
+
+  rows.forEach(function (row) {
+    var inputs = row.querySelectorAll('input');
+    var real = parseFloat(inputs[0].value);
+    var aprox = parseFloat(inputs[1].value);
+    if (isNaN(real) || isNaN(aprox)) return;
+    var ea = Math.abs(real - aprox);
+    var er = ea / Math.abs(real);
+    var ep = er * 100;
+    row.querySelector('.ea').textContent = fmt(ea);
+    row.querySelector('.er').textContent = fmt(er, 8);
+    row.querySelector('.ep').textContent = fmt(ep, 6) + '%';
+    if (ep > maxErr) { maxErr = ep; maxDato = row.cells[0].textContent; }
+    out += row.cells[0].textContent.padEnd(20) + ' Ea=' + fmt(ea).padStart(12) + '  Er=' + fmt(er, 8).padStart(14) + '  E%=' + fmt(ep, 6).padStart(12) + '%\n';
+    labels.push(row.cells[0].textContent);
+    valoresE.push(ep);
+  });
+
+  out += '────────────────────────────────────────────────────────────\n';
+  out += '⚠ Mayor error porcentual: ' + maxDato + ' (' + fmt(maxErr, 6) + '%)';
+  var el = document.getElementById('errResult');
+  el.textContent = out;
+  el.className = 'result success';
+
+  if (typeof Chart !== 'undefined') {
+    if (chartErrores) chartErrores.destroy();
+    var ctx = document.getElementById('chartErrores').getContext('2d');
+    var maxVal = Math.max.apply(null, valoresE);
+    chartErrores = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Error porcentual (%)',
+          data: valoresE,
+          backgroundColor: valoresE.map(function (v) { return v === maxVal ? 'rgba(220,38,38,0.8)' : 'rgba(245,158,11,0.7)'; }),
+          borderColor: valoresE.map(function (v) { return v === maxVal ? '#dc2626' : '#f59e0b'; }),
+          borderWidth: 2,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: function (c) { return 'Error: ' + c.parsed.y.toFixed(6) + '%'; } } }
+        },
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Error porcentual (%)', color: '#94a3b8' }, grid: { color: '#1e293b' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  var maxIdx = valoresE.indexOf(Math.max.apply(null, valoresE));
+  var minIdx = valoresE.indexOf(Math.min.apply(null, valoresE));
+  document.getElementById('interpErrores').innerHTML =
+    '<strong>Interpretación (Bolivia):</strong> El dato con <strong>mayor error porcentual</strong> es <strong>' + labels[maxIdx] + '</strong> (' + fmt(valoresE[maxIdx], 4) + '%), mientras que el de <strong>menor error</strong> es <strong>' + labels[minIdx] + '</strong> (' + fmt(valoresE[minIdx], 4) + '%). ' +
+    'En una pequeña empresa boliviana, un error en la <strong>utilidad estimada</strong> es más grave que en el ingreso o costo, porque la utilidad es el resultado neto que guía decisiones de inversión, expansión o endeudamiento. ' +
+    'La ASFI y el BCB exigen a las empresas monitorear estos errores para evitar riesgos financieros.';
+}
+
+function resetErrores() {
+  var defaults = [[12500, 12420], [7800, 7860], [4700, 4560]];
+  document.querySelectorAll('#errTable tbody tr').forEach(function (row, i) {
+    var inputs = row.querySelectorAll('input');
+    inputs[0].value = defaults[i][0];
+    inputs[1].value = defaults[i][1];
+    row.querySelector('.ea').textContent = '—';
+    row.querySelector('.er').textContent = '—';
+    row.querySelector('.ep').textContent = '—';
+  });
+  document.getElementById('errResult').textContent = 'Esperando cálculo...';
+  document.getElementById('errResult').className = 'result';
+  if (chartErrores) { chartErrores.destroy(); chartErrores = null; }
+  document.getElementById('interpErrores').innerHTML = '<strong>Interpretación:</strong> Presione "Calcular errores" para visualizar qué dato tiene mayor impacto relativo.';
+}
+
+/* =================================================================
+   PARTE II – APROXIMACIÓN POR TAYLOR
+   ================================================================= */
+function calcularTaylor() {
+  var P = parseFloat(document.getElementById('P').value);
+  var r = parseFloat(document.getElementById('r').value);
+  var t0 = parseFloat(document.getElementById('t0').value);
+  var t = parseFloat(document.getElementById('t').value);
+  if (isNaN(P) || isNaN(r) || isNaN(t0) || isNaN(t)) {
+    return mostrarTaylor('❌ Ingrese valores numéricos válidos', true);
+  }
+  var h = t - t0;
+
+  var V = function (x) { return P * Math.exp(r * x); };
+  var d1 = function (x) { return P * r * Math.exp(r * x); };
+  var d2 = function (x) { return P * r * r * Math.exp(r * x); };
+  var d3 = function (x) { return P * r * r * r * Math.exp(r * x); };
+
+  var exacto = V(t);
+  var V0 = V(t0), V1d = d1(t0), V2d = d2(t0), V3d = d3(t0);
+
+  var T1 = V0 + V1d * h;
+  var T2 = T1 + (V2d / 2) * h * h;
+  var T3 = T2 + (V3d / 6) * h * h * h;
+
+  var e1 = Math.abs(exacto - T1);
+  var e2 = Math.abs(exacto - T2);
+  var e3 = Math.abs(exacto - T3);
+
+  var out = '📈 APROXIMACIÓN POR TAYLOR – CAPITAL EN BOLIVIANOS\n';
+  out += '────────────────────────────────────────────────────────────\n';
+  out += 'Parámetros: P=' + P + ' Bs, r=' + r + ', t₀=' + t0 + ', t=' + t + '\n';
+  out += 'h = t − t₀ = ' + fmt(h) + '\n\n';
+  out += 'Valor exacto C(' + t + ') = ' + fmt(exacto, 6) + ' Bs\n';
+  out += '────────────────────────────────────────────────────────────\n';
+  out += 'Taylor orden 1: ' + fmt(T1, 6).padStart(14) + ' Bs   error abs = ' + fmt(e1, 8) + '\n';
+  out += 'Taylor orden 2: ' + fmt(T2, 6).padStart(14) + ' Bs   error abs = ' + fmt(e2, 8) + '\n';
+  out += 'Taylor orden 3: ' + fmt(T3, 6).padStart(14) + ' Bs   error abs = ' + fmt(e3, 8) + '\n';
+  out += '────────────────────────────────────────────────────────────\n';
+  var mejor = e1 < e2 && e1 < e3 ? 'Orden 1' : (e2 < e3 ? 'Orden 2' : 'Orden 3');
+  out += '✅ Mejor aproximación: ' + mejor;
+  mostrarTaylor(out);
+
+  if (typeof Chart !== 'undefined') {
+    var rango = 1.5, pasos = 60;
+    var xVals = [];
+    for (var i = 0; i <= pasos; i++) xVals.push(t0 - rango / 2 + (rango * i / pasos));
+    var yExacto = xVals.map(function (x) { return V(x); });
+    var yT1 = xVals.map(function (x) { return V0 + V1d * (x - t0); });
+    var yT2 = xVals.map(function (x) { return V0 + V1d * (x - t0) + (V2d / 2) * Math.pow(x - t0, 2); });
+    var yT3 = xVals.map(function (x) { return V0 + V1d * (x - t0) + (V2d / 2) * Math.pow(x - t0, 2) + (V3d / 6) * Math.pow(x - t0, 3); });
+
+    if (chartTaylor) chartTaylor.destroy();
+    var ctxT = document.getElementById('chartTaylor').getContext('2d');
+    chartTaylor = new Chart(ctxT, {
+      type: 'line',
+      data: {
+        labels: xVals.map(function (x) { return x.toFixed(3); }),
+        datasets: [
+          { label: 'Exacto C(t)', data: yExacto, borderColor: '#4ade80', backgroundColor: 'rgba(74,222,128,0.1)', borderWidth: 3, pointRadius: 0, tension: 0.3 },
+          { label: 'Taylor orden 1', data: yT1, borderColor: '#f59e0b', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0 },
+          { label: 'Taylor orden 2', data: yT2, borderColor: '#fbbf24', borderWidth: 2, borderDash: [4, 3], pointRadius: 0, tension: 0 },
+          { label: 'Taylor orden 3', data: yT3, borderColor: '#dc2626', borderWidth: 2, borderDash: [2, 2], pointRadius: 0, tension: 0 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { color: '#cbd5e1', usePointStyle: true, padding: 15 } },
+          tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ' + c.parsed.y.toFixed(4) + ' Bs'; } } }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Tiempo t (años)', color: '#94a3b8' }, grid: { color: '#1e293b' } },
+          y: { title: { display: true, text: 'Capital C(t) en Bs', color: '#94a3b8' }, grid: { color: '#1e293b' } }
+        }
+      }
+    });
+  }
+
+  document.getElementById('interpTaylor').innerHTML =
+    '<strong>Interpretación (Bolivia):</strong> En t = ' + t + ', el valor exacto del capital es <strong>' + fmt(exacto, 4) + ' Bs</strong>. ' +
+    'El orden 1 da error <strong>' + fmt(e1, 4) + ' Bs</strong>, el orden 2 error <strong>' + fmt(e2, 4) + ' Bs</strong> y el orden 3 error <strong>' + fmt(e3, 4) + ' Bs</strong>. ' +
+    'La <strong>' + mejor + '</strong> produce la mejor aproximación. En un contexto boliviano de tasas relativamente estables (BCB), Taylor de orden 2 o 3 es suficiente para estimaciones precisas de capital.';
+}
+
+function mostrarTaylor(texto, esError) {
+  var el = document.getElementById('taylorResult');
+  el.textContent = texto;
+  el.className = esError ? 'result error' : 'result success';
+}
+
+function resetTaylor() {
+  document.getElementById('P').value = 10000;
+  document.getElementById('r').value = 0.05;
+  document.getElementById('t0').value = 1;
+  document.getElementById('t').value = 1.5;
+  document.getElementById('taylorResult').textContent = 'Esperando cálculo...';
+  document.getElementById('taylorResult').className = 'result';
+  if (chartTaylor) { chartTaylor.destroy(); chartTaylor = null; }
+  document.getElementById('interpTaylor').innerHTML = '<strong>Interpretación:</strong> Presione "Calcular Taylor" para ver cómo cada orden se acerca a la curva exacta.';
+}
+
+/* =================================================================
+   PARTE III – SISTEMAS DE ECUACIONES
+   ================================================================= */
+function leerMatriz() {
+  var rows = document.querySelectorAll('#matA .matrix-row');
+  var A = [];
+  rows.forEach(function (r) {
+    var inputs = r.querySelectorAll('input');
+    A.push([parseFloat(inputs[0].value), parseFloat(inputs[1].value), parseFloat(inputs[2].value)]);
+  });
+  var b = [
+    parseFloat(document.getElementById('b1').value),
+    parseFloat(document.getElementById('b2').value),
+    parseFloat(document.getElementById('b3').value)
+  ];
+  var tol = parseFloat(document.getElementById('tol').value);
+  var maxIter = parseInt(document.getElementById('maxIter').value);
+  return { A: A, b: b, tol: tol, maxIter: maxIter };
+}
+
+function validarDatos(datos) {
+  var invalido = false;
+  datos.A.forEach(function (row) {
+    row.forEach(function (v) { if (isNaN(v)) invalido = true; });
+  });
+  datos.b.forEach(function (v) { if (isNaN(v)) invalido = true; });
+  if (isNaN(datos.tol) || isNaN(datos.maxIter)) invalido = true;
+  return !invalido;
+}
+
+/* =================================================================
+   ANÁLISIS DE DIAGONAL DOMINANTE
+   ================================================================= */
+function analizarDiagonalDominante(A) {
+  var n = A.length;
+  var filas = [];
+  var esDominante = true;
+  var esDebil = true;
+
+  for (var i = 0; i < n; i++) {
+    var diagonal = Math.abs(A[i][i]);
+    var sumaOtros = 0;
+    for (var j = 0; j < n; j++) {
+      if (j !== i) sumaOtros += Math.abs(A[i][j]);
+    }
+    var dominanteEstricta = diagonal > sumaOtros;
+    var dominanteDebil = diagonal >= sumaOtros;
+
+    if (!dominanteEstricta) esDominante = false;
+    if (!dominanteDebil) esDebil = false;
+
+    filas.push({
+      fila: i + 1,
+      valorDiagonal: A[i][i],
+      absDiagonal: diagonal,
+      sumaOtros: sumaOtros,
+      dominanteEstricta: dominanteEstricta,
+      dominanteDebil: dominanteDebil,
+      margen: diagonal - sumaOtros
+    });
+  }
+
+  return {
+    filas: filas,
+    esEstrictamenteDominante: esDominante,
+    esDebilmenteDominante: esDebil
+  };
+}
+
+function formatearAnalisisDiagonal(A) {
+  var analisis = analizarDiagonalDominante(A);
+  var out = '🔍 ANÁLISIS DE DIAGONAL DOMINANTE\n';
+  out += '────────────────────────────────────────────────────────────\n';
+  out += 'Criterio: |aᵢᵢ| > Σ|aᵢⱼ| para j ≠ i\n\n';
+  out += 'Fila |  aᵢᵢ  |  |aᵢᵢ|  |  Σ|aᵢⱼ|  |  ¿Dominante?  |  Margen\n';
+  out += '─────┼────────┼──────────┼───────────┼──────────────┼─────────\n';
+
+  analisis.filas.forEach(function (f) {
+    var estado = f.dominanteEstricta ? '✅ SÍ' : (f.dominanteDebil ? '⚠️ DÉBIL' : '❌ NO');
+    out += '  ' + f.fila + '  | ' + fmt(f.valorDiagonal, 4).padStart(6) + ' | ' +
+           fmt(f.absDiagonal, 4).padStart(8) + ' | ' +
+           fmt(f.sumaOtros, 4).padStart(9) + ' | ' + estado.padEnd(11) + ' | ' +
+           fmt(f.margen, 4).padStart(7) + '\n';
+  });
+
+  out += '────────────────────────────────────────────────────────────\n';
+  if (analisis.esEstrictamenteDominante) {
+    out += '✅ Matriz ESTRICTAMENTE diagonal dominante\n';
+    out += '   → Jacobi y Gauss-Seidel CONVERGEN garantizado para cualquier x⁽⁰⁾.';
+  } else if (analisis.esDebilmenteDominante) {
+    out += '⚠️ Matriz DÉBILMENTE diagonal dominante\n';
+    out += '   → La convergencia no está garantizada, pero puede ocurrir.';
+  } else {
+    out += '❌ Matriz NO es diagonal dominante\n';
+    out += '   → Jacobi y Gauss-Seidel PUEDEN NO CONVERGER.';
+  }
+  return out;
+}
+
+function analizarMatrizActual() {
+  var datos = leerMatriz();
+  var el = document.getElementById('panelAnalisis');
+  if (!validarDatos(datos)) {
+    el.textContent = '❌ Hay valores inválidos en la matriz.';
+    return;
+  }
+  el.textContent = formatearAnalisisDiagonal(datos.A);
+}
+
+/* =================================================================
+   LU, JACOBI, GAUSS-SEIDEL
+   ================================================================= */
+function luSolve(A, b) {
+  var n = A.length;
+  var L = [], U = [];
+  for (var i = 0; i < n; i++) {
+    L.push([]);
+    U.push([]);
+    for (var j = 0; j < n; j++) { L[i].push(0); U[i].push(0); }
+  }
+  for (var i2 = 0; i2 < n; i2++) L[i2][i2] = 1;
+
+  for (var k = 0; k < n; k++) {
+    for (var j2 = k; j2 < n; j2++) {
+      var s = 0;
+      for (var p = 0; p < k; p++) s += L[k][p] * U[p][j2];
+      U[k][j2] = A[k][j2] - s;
+    }
+    for (var i3 = k + 1; i3 < n; i3++) {
+      var s2 = 0;
+      for (var p2 = 0; p2 < k; p2++) s2 += L[i3][p2] * U[p2][k];
+      if (Math.abs(U[k][k]) < 1e-15) return { error: "Matriz singular o pivote cero" };
+      L[i3][k] = (A[i3][k] - s2) / U[k][k];
+    }
+  }
+
+  var y = [];
+  for (var i4 = 0; i4 < n; i4++) {
+    var s3 = 0;
+    for (var j3 = 0; j3 < i4; j3++) s3 += L[i4][j3] * y[j3];
+    y.push(b[i4] - s3);
+  }
+
+  var x = new Array(n).fill(0);
+  for (var i5 = n - 1; i5 >= 0; i5--) {
+    var s4 = 0;
+    for (var j4 = i5 + 1; j4 < n; j4++) s4 += U[i5][j4] * x[j4];
+    if (Math.abs(U[i5][i5]) < 1e-15) return { error: "División por cero en U" };
+    x[i5] = (y[i5] - s4) / U[i5][i5];
+  }
+  return { x: x, L: L, U: U };
+}
+
+function jacobi(A, b, tol, maxIter) {
+  var n = A.length;
+  var x = new Array(n).fill(0);
+  var iter = 0, error = Infinity;
+  var historial = [0];
+  while (iter < maxIter && error > tol) {
+    var xNew = new Array(n).fill(0);
+    for (var i = 0; i < n; i++) {
+      var s = 0;
+      for (var j = 0; j < n; j++) if (j !== i) s += A[i][j] * x[j];
+      if (Math.abs(A[i][i]) < 1e-15) return { error: "Diagonal cero en Jacobi" };
+      xNew[i] = (b[i] - s) / A[i][i];
+    }
+    error = 0;
+    for (var m = 0; m < n; m++) {
+      var diff = Math.abs(xNew[m] - x[m]);
+      if (diff > error) error = diff;
+    }
+    x = xNew;
+    iter++;
+    historial.push(error);
+  }
+  return { x: x, iter: iter, error: error, convergio: error <= tol, historial: historial };
+}
+
+function gaussSeidel(A, b, tol, maxIter) {
+  var n = A.length;
+  var x = new Array(n).fill(0);
+  var iter = 0, error = Infinity;
+  var historial = [0];
+  while (iter < maxIter && error > tol) {
+    var xOld = x.slice();
+    for (var i = 0; i < n; i++) {
+      var s = 0;
+      for (var j = 0; j < n; j++) if (j !== i) s += A[i][j] * x[j];
+      if (Math.abs(A[i][i]) < 1e-15) return { error: "Diagonal cero en Gauss-Seidel" };
+      x[i] = (b[i] - s) / A[i][i];
+    }
+    error = 0;
+    for (var m = 0; m < n; m++) {
+      var diff = Math.abs(x[m] - xOld[m]);
+      if (diff > error) error = diff;
+    }
+    iter++;
+    historial.push(error);
+  }
+  return { x: x, iter: iter, error: error, convergio: error <= tol, historial: historial };
+}
+
+function mostrarSys(texto, tipo) {
+  var el = document.getElementById('sysResult');
+  el.textContent = texto;
+  el.className = 'result ' + (tipo === 'error' ? 'error' : 'success');
+}
+
+/* =================================================================
+   RESOLVER: LU, JACOBI, GAUSS-SEIDEL, TODOS
+   ================================================================= */
+function resolverLU() {
+  var datos = leerMatriz();
+  if (!validarDatos(datos)) return mostrarSys('❌ Hay valores inválidos en la matriz o el vector b.', 'error');
+  var res = luSolve(datos.A, datos.b);
+  if (res.error) return mostrarSys("❌ " + res.error, 'error');
+  var out = '🔹 FACTORIZACIÓN LU – DISTRIBUCIÓN DE RECURSOS\n────────────────────────────────────────────────────────────\n';
+  out += 'Matriz L:\n';
+  res.L.forEach(function (r) { out += '  [' + r.map(function (v) { return fmt(v, 4).padStart(10); }).join('  ') + ']\n'; });
+  out += '\nMatriz U:\n';
+  res.U.forEach(function (r) { out += '  [' + r.map(function (v) { return fmt(v, 4).padStart(10); }).join('  ') + ']\n'; });
+  out += '\n────────────────────────────────────────────────────────────\n';
+  out += 'Solución x = [' + res.x.map(function (v) { return fmt(v, 6); }).join(', ') + '] miles de Bs\n';
+  out += '  x₁ (Operaciones):       ' + fmt(res.x[0], 4) + ' miles Bs\n';
+  out += '  x₂ (Comercialización):  ' + fmt(res.x[1], 4) + ' miles Bs\n';
+  out += '  x₃ (Tecnología):        ' + fmt(res.x[2], 4) + ' miles Bs';
+  mostrarSys(out);
+}
+
+function resolverJacobi() {
+  var datos = leerMatriz();
+  if (!validarDatos(datos)) return mostrarSys('❌ Hay valores inválidos en la matriz o el vector b.', 'error');
+
+  var analisis = formatearAnalisisDiagonal(datos.A);
+  var dominante = analizarDiagonalDominante(datos.A).esEstrictamenteDominante;
+
+  var res = jacobi(datos.A, datos.b, datos.tol, datos.maxIter);
+  if (res.error) return mostrarSys("❌ " + res.error, 'error');
+
+  var out = '🔸 MÉTODO DE JACOBI\n';
+  out += analisis + '\n';
+  if (!dominante) {
+    out += '⚠️ ADVERTENCIA: La matriz NO es estrictamente diagonal dominante.\n';
+    out += '   El método puede no converger en todos los casos.\n';
+  }
+  out += '\n📊 RESULTADO DE LA ITERACIÓN\n────────────────────────────────────────────────────────────\n';
+  out += 'Solución x = [' + res.x.map(function (v) { return fmt(v, 6); }).join(', ') + '] miles de Bs\n';
+  out += 'Iteraciones: ' + res.iter + '\n';
+  out += 'Error final: ' + fmt(res.error, 10) + '\n';
+  out += 'Convergió: ' + (res.convergio ? '✅ Sí' : '❌ No (máx iter alcanzado)');
+
+  mostrarSys(out, res.convergio ? 'success' : 'error');
+  graficarConvergencia(res.historial, 'Jacobi');
+}
+
+function resolverGaussSeidel() {
+  var datos = leerMatriz();
+  if (!validarDatos(datos)) return mostrarSys('❌ Hay valores inválidos en la matriz o el vector b.', 'error');
+
+  var analisis = formatearAnalisisDiagonal(datos.A);
+  var dominante = analizarDiagonalDominante(datos.A).esEstrictamenteDominante;
+
+  var res = gaussSeidel(datos.A, datos.b, datos.tol, datos.maxIter);
+  if (res.error) return mostrarSys("❌ " + res.error, 'error');
+
+  var out = '🔹 MÉTODO DE GAUSS-SEIDEL\n';
+  out += analisis + '\n';
+  if (!dominante) {
+    out += '⚠️ ADVERTENCIA: La matriz NO es estrictamente diagonal dominante.\n';
+    out += '   El método puede no converger en todos los casos.\n';
+  }
+  out += '\n📊 RESULTADO DE LA ITERACIÓN\n────────────────────────────────────────────────────────────\n';
+  out += 'Solución x = [' + res.x.map(function (v) { return fmt(v, 6); }).join(', ') + '] miles de Bs\n';
+  out += 'Iteraciones: ' + res.iter + '\n';
+  out += 'Error final: ' + fmt(res.error, 10) + '\n';
+  out += 'Convergió: ' + (res.convergio ? '✅ Sí' : '❌ No (máx iter alcanzado)');
+
+  mostrarSys(out, res.convergio ? 'success' : 'error');
+  graficarConvergencia(res.historial, 'Gauss-Seidel');
+}
+
+function graficarConvergencia(historial, metodo) {
+  if (typeof Chart === 'undefined') return;
+  var labels = historial.map(function (_, i) { return i; });
+  var data = historial.map(function (e) { return e === 0 ? null : e; });
+  if (chartConvergencia) chartConvergencia.destroy();
+  var ctx = document.getElementById('chartConvergencia').getContext('2d');
+  var color = metodo === 'Jacobi' ? '#f59e0b' : '#dc2626';
+  chartConvergencia = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Error ' + metodo,
+        data: data,
+        borderColor: color,
+        backgroundColor: color + '22',
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointBackgroundColor: color,
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#cbd5e1' } },
+        tooltip: { callbacks: { label: function (c) { return 'Error: ' + (c.parsed.y !== null ? c.parsed.y.toExponential(3) : 'N/A'); } } }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Iteración', color: '#94a3b8' }, grid: { color: '#1e293b' } },
+        y: { type: 'logarithmic', title: { display: true, text: 'Error (escala log)', color: '#94a3b8' }, grid: { color: '#1e293b' } }
+      }
+    }
+  });
+  document.getElementById('interpConvergencia').innerHTML =
+    '<strong>Interpretación (' + metodo + ' – Bolivia):</strong> La gráfica muestra el error máximo entre iteraciones en escala logarítmica. ' +
+    'Se realizaron <strong>' + (historial.length - 1) + ' iteraciones</strong>. ' +
+    (metodo === 'Gauss-Seidel'
+      ? 'Gauss-Seidel converge más rápido porque usa valores actualizados en la misma iteración, ideal para distribuir recursos entre áreas interdependientes.'
+      : 'Jacobi actualiza todos los valores simultáneamente, requiere más iteraciones pero es más fácil de paralelizar.') +
+    ' La pendiente indica la <strong>velocidad de convergencia</strong>.';
+}
+
+function resolverTodos() {
+  var datos = leerMatriz();
+  if (!validarDatos(datos)) return mostrarSys('❌ Hay valores inválidos en la matriz o el vector b.', 'error');
+
+  var analisis = formatearAnalisisDiagonal(datos.A);
+  var dominante = analizarDiagonalDominante(datos.A).esEstrictamenteDominante;
+
+  var out = '📊 COMPARACIÓN DE MÉTODOS\n';
+  out += analisis + '\n';
+  if (!dominante) {
+    out += '⚠️ La matriz NO es estrictamente diagonal dominante.\n';
+    out += '   Los métodos iterativos pueden no converger.\n';
+  }
+  out += '\n📊 RESULTADOS\n────────────────────────────────────────────────────────────\n';
+
+  var lu = luSolve(datos.A, datos.b);
+  if (lu.error) out += 'LU:        ❌ ' + lu.error + '\n';
+  else out += 'LU:        x = [' + lu.x.map(function (v) { return fmt(v, 6); }).join(', ') + ']\n';
+
+  var jac = jacobi(datos.A, datos.b, datos.tol, datos.maxIter);
+  if (jac.error) out += 'Jacobi:    ❌ ' + jac.error + '\n';
+  else out += 'Jacobi:    x = [' + jac.x.map(function (v) { return fmt(v, 6); }).join(', ') + ']  (iter=' + jac.iter + ', conv=' + (jac.convergio ? '✅' : '❌') + ')\n';
+
+  var gs = gaussSeidel(datos.A, datos.b, datos.tol, datos.maxIter);
+  if (gs.error) out += 'G-Seidel:  ❌ ' + gs.error + '\n';
+  else out += 'G-Seidel:  x = [' + gs.x.map(function (v) { return fmt(v, 6); }).join(', ') + ']  (iter=' + gs.iter + ', conv=' + (gs.convergio ? '✅' : '❌') + ')\n';
+
+  out += '────────────────────────────────────────────────────────────\n';
+  out += 'Áreas: x₁=Operaciones, x₂=Comercialización, x₃=Tecnología';
+  mostrarSys(out);
+
+  if (typeof Chart !== 'undefined' && !lu.error && !jac.error && !gs.error) {
+    var labels = ['x₁ Operaciones', 'x₂ Comercialización', 'x₃ Tecnología'];
+    if (chartSoluciones) chartSoluciones.destroy();
+    var ctx = document.getElementById('chartSoluciones').getContext('2d');
+    chartSoluciones = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'LU', data: lu.x, backgroundColor: 'rgba(74,222,128,0.8)', borderColor: '#4ade80', borderWidth: 2, borderRadius: 6 },
+          { label: 'Jacobi', data: jac.x, backgroundColor: 'rgba(245,158,11,0.8)', borderColor: '#f59e0b', borderWidth: 2, borderRadius: 6 },
+          { label: 'Gauss-Seidel', data: gs.x, backgroundColor: 'rgba(220,38,38,0.8)', borderColor: '#dc2626', borderWidth: 2, borderRadius: 6 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#cbd5e1', usePointStyle: true } },
+          tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ' + c.parsed.y.toFixed(6) + ' miles Bs'; } } }
+        },
+        scales: {
+          y: { title: { display: true, text: 'Miles de Bs', color: '#94a3b8' }, grid: { color: '#1e293b' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    var diffMax = Math.max(
+      Math.abs(lu.x[0] - jac.x[0]), Math.abs(lu.x[1] - jac.x[1]), Math.abs(lu.x[2] - jac.x[2]),
+      Math.abs(lu.x[0] - gs.x[0]), Math.abs(lu.x[1] - gs.x[1]), Math.abs(lu.x[2] - gs.x[2])
+    );
+
+    var interpretacion = '<strong>Interpretación (Bolivia):</strong> ';
+    if (dominante) {
+      interpretacion += 'La matriz es <strong>estrictamente diagonal dominante</strong>, por lo que <strong>Jacobi y Gauss-Seidel convergen garantizado</strong>. ';
+    } else {
+      interpretacion += 'La matriz <strong>NO es estrictamente diagonal dominante</strong>, así que la convergencia no está garantizada, aunque en la práctica puede ocurrir. ';
+    }
+    interpretacion += 'Los tres métodos convergen a la misma solución. La diferencia máxima es <strong>' + diffMax.toExponential(3) + '</strong> miles de Bs. ' +
+      '<strong>Gauss-Seidel</strong> requiere menos iteraciones que Jacobi.';
+
+    document.getElementById('interpSoluciones').innerHTML = interpretacion;
+  }
+}
+
+function setMatriz(A, b) {
+  var rows = document.querySelectorAll('#matA .matrix-row');
+  rows.forEach(function (r, i) {
+    var inputs = r.querySelectorAll('input');
+    inputs[0].value = A[i][0];
+    inputs[1].value = A[i][1];
+    inputs[2].value = A[i][2];
+  });
+  document.getElementById('b1').value = b[0];
+  document.getElementById('b2').value = b[1];
+  document.getElementById('b3').value = b[2];
+}
+
+function cargarCaso(tipo) {
+  if (tipo === 'ideal') {
+    setMatriz([[10, 2, 1], [1, 9, 2], [2, 1, 8]], [29, 24.5, 28]);
+    mostrarSys('✅ Caso ideal cargado.\nContexto: empresa boliviana en operación normal.\nPresione un método para resolver.', 'success');
+  } else if (tipo === 'estres') {
+    setMatriz([[10, 2, 1], [1, 9, 2], [2, 1, 8]], [29.5, 24.5, 28.4]);
+    mostrarSys('⚠ Caso bajo estrés cargado.\nContexto: variación inesperada en costos (insumos importados, combustible).\nPresione un método para resolver.', 'success');
+  } else if (tipo === 'mal') {
+    setMatriz([[1, 1, 1], [1.001, 1, 1], [1, 1.001, 1]], [6, 6.001, 6.002]);
+    mostrarSys('🔴 Caso mal condicionado cargado.\nContexto: tres estimaciones financieras muy parecidas (alta correlación).\nPruebe cambiar b3 a 6.003 y compare.', 'success');
+  }
+  analizarMatrizActual();
+}
+</script>
+</body>
+</html>
